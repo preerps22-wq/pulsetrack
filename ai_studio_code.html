@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>PulseTrack — Productivity & Consistency</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #111827;
+      --surface-card: #1f2937;
+      --surface-border: #374151;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent: #10b981;
+      --accent-warn: #f59e0b;
+      --accent-danger: #ef4444;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --text-sub: #6b7280;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    [data-theme="light"] {
+      --bg: #f3f4f6;
+      --surface: #ffffff;
+      --surface-card: #ffffff;
+      --surface-border: #e5e7eb;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #059669;
+      --accent-warn: #d97706;
+      --accent-danger: #dc2626;
+      --text: #111827;
+      --text-muted: #4b5563;
+      --text-sub: #9ca3af;
+      --shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      padding-bottom: 84px; /* Space for mobile bottom bar */
+    }
+
+    /* Desktop Sidebar & Layout */
+    @media (min-width: 860px) {
+      body {
+        flex-direction: row;
+        padding-bottom: 0;
+      }
+      #mobile-nav {
+        display: none !important;
+      }
+      #desktop-sidebar {
+        display: flex !important;
+      }
+      #app-main {
+        flex: 1;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 28px 40px;
+      }
+    }
+
+    #desktop-sidebar {
+      display: none;
+      width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--surface-border);
+      flex-direction: column;
+      padding: 24px 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 32px;
+      padding-left: 8px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 900;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+      margin-bottom: 6px;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+
+    .nav-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Mobile Bottom Navigation */
+    #mobile-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: var(--surface);
+      border-top: 1px solid var(--surface-border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(12px);
+    }
+
+    .m-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      transition: color 0.15s;
+    }
+
+    .m-nav-item.active {
+      color: var(--primary);
+    }
+
+    .m-nav-item svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2.2;
+    }
+
+    /* Main Container */
+    #app-main {
+      padding: 16px;
+      width: 100%;
+    }
+
+    header.top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .date-selector-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--surface-border);
+    }
+
+    .date-selector-wrap input[type="date"] {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 6px;
+    }
+
+    .icon-btn:hover {
+      color: var(--text);
+      background: var(--surface-border);
+    }
+
+    .banner-timer-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      animation: pulseGlow 2s infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Views */
+    .view-panel {
+      display: none;
+    }
+    .view-panel.active {
+      display: block;
+    }
+
+    /* Daily Summary Card */
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 10px;
+      background: var(--surface-border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 14px 0 16px 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .summary-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+    }
+
+    .metric-box {
+      background: var(--bg);
+      border: 1px solid var(--surface-border);
+      padding: 12px;
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+
+    .metric-value {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Activity Cards */
+    .activity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .activity-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    .activity-card.is-running {
+      border-color: var(--accent);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+    }
+
+    .activity-card.completed {
+      border-left: 5px solid var(--accent);
+    }
+
+    .activity-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .activity-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .checkbox-custom {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 2px solid var(--surface-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .checkbox-custom.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .activity-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .target-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .target-achieved-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+      margin-left: 6px;
+    }
+
+    /* Stopwatch Component */
+    .timer-box {
+      background: var(--bg);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin: 12px 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .timer-display {
+      font-family: var(--font-mono);
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+    }
+
+    .timer-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-warn { background: var(--accent-warn); color: white; }
+    .btn-danger { background: var(--accent-danger); color: white; }
+    .btn-outline { background: transparent; border: 1px solid var(--surface-border); color: var(--text-muted); }
+    .btn-outline:hover { color: var(--text); border-color: var(--text-muted); }
+
+    /* Custom Fields Inputs */
+    .activity-fields {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-input, .form-textarea, .form-select {
+      background: var(--bg);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      color: var(--text);
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--primary);
+    }
+
+    /* Daily Notes Card */
+    .daily-notes-card {
+      margin-top: 20px;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    /* Toast Notification */
+    #toast-banner {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 3000;
+    }
+
+    /* Calendar Heatmap & Monthly Analytics */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin: 16px 0;
+    }
+
+    .calendar-day-header {
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding-bottom: 6px;
+    }
+
+    .calendar-cell {
+      aspect-ratio: 1;
+      background: var(--bg);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.1s, border-color 0.2s;
+    }
+
+    .calendar-cell:hover {
+      transform: scale(1.05);
+      border-color: var(--primary);
+    }
+
+    .calendar-cell.is-today {
+      border: 2px solid var(--primary);
+    }
+
+    .calendar-cell.empty {
+      background: transparent;
+      border: none;
+      cursor: default;
+    }
+
+    .cell-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-top: 3px;
+    }
+
+    .dot-green { background: var(--accent); }
+    .dot-yellow { background: var(--accent-warn); }
+    .dot-red { background: var(--accent-danger); }
+    .dot-grey { background: var(--text-sub); }
+
+    .chart-container {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+
+    svg.analytics-svg {
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    /* Customize Table / List */
+    .config-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .streak-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #f59e0b;
+      background: rgba(245, 158, 11, 0.12);
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Desktop Navigation Sidebar -->
+  <aside id="desktop-sidebar">
+    <div class="brand">
+      <div class="brand-icon">P</div>
+      <span>PulseTrack</span>
+    </div>
+    <button class="nav-btn active" onclick="app.switchTab('today')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Today
+    </button>
+    <button class="nav-btn" onclick="app.switchTab('plan')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Monthly Plan
+    </button>
+    <button class="nav-btn" onclick="app.switchTab('analytics')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </button>
+    <button class="nav-btn" onclick="app.switchTab('customize')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Customize
+    </button>
+    <button class="nav-btn" onclick="app.switchTab('settings')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </aside>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav id="mobile-nav">
+    <button class="m-nav-item active" onclick="app.switchTab('today')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Today</span>
+    </button>
+    <button class="m-nav-item" onclick="app.switchTab('plan')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16h16V8l-6-6z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Plan</span>
+    </button>
+    <button class="m-nav-item" onclick="app.switchTab('analytics')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Analytics</span>
+    </button>
+    <button class="m-nav-item" onclick="app.switchTab('customize')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span>Custom</span>
+    </button>
+    <button class="m-nav-item" onclick="app.switchTab('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <!-- Application Main Area -->
+  <main id="app-main">
+    
+    <!-- Top Header Bar (Date selector & live timer indicator) -->
+    <header class="top-bar">
+      <div class="date-selector-wrap">
+        <button class="icon-btn" onclick="app.shiftDay(-1)" title="Previous Day">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <input type="date" id="activeDateInput" onchange="app.setDate(this.value)">
+        <button class="icon-btn" onclick="app.shiftDay(1)" title="Next Day">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="app.goToToday()">Today</button>
+      </div>
+
+      <div id="liveTimerPill" style="display:none;" class="banner-timer-status">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="liveTimerText">Active: Morning Walking</span>
+      </div>
+    </header>
+
+    <!-- TAB 1: TODAY VIEW -->
+    <section id="view-today" class="view-panel active">
+      <div class="summary-card">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+          <h2 style="font-size:1.15rem; font-weight:700;">Daily Completion</h2>
+          <span id="dailyPercentText" style="font-size:1.2rem; font-weight:800; color:var(--primary);">0%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div id="dailyProgressBar" class="progress-bar-fill"></div>
+        </div>
+        <div class="summary-metrics">
+          <div class="metric-box">
+            <div id="metricPlanned" class="metric-value">6</div>
+            <div class="metric-label">Planned</div>
+          </div>
+          <div class="metric-box">
+            <div id="metricCompleted" class="metric-value">0</div>
+            <div class="metric-label">Done</div>
+          </div>
+          <div class="metric-box">
+            <div id="metricRemaining" class="metric-value">6</div>
+            <div class="metric-label">Remaining</div>
+          </div>
+          <div class="metric-box">
+            <div id="metricActiveTime" class="metric-value">00:00:00</div>
+            <div class="metric-label">Tracked Time</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Cards Container -->
+      <div id="activityCardList" class="activity-list"></div>
+
+      <!-- Daily Notes Card -->
+      <div class="daily-notes-card">
+        <label class="form-label" style="font-size:0.85rem; margin-bottom:6px; display:block;">Daily Reflection & Notes</label>
+        <textarea id="dailyNotesInput" class="form-textarea" rows="3" style="width:100%;" placeholder="Write any daily observations, learnings, or reasons for missed tasks..." oninput="app.saveDailyNotes(this.value)"></textarea>
+      </div>
+    </section>
+
+    <!-- TAB 2: MONTHLY PLAN VIEW -->
+    <section id="view-plan" class="view-panel">
+      <div class="summary-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <h2 style="font-size:1.2rem; font-weight:700;">Monthly Targets & Schedule</h2>
+          <div style="display:flex; gap:8px;">
+            <select id="planMonthSelect" class="form-select" onchange="app.renderMonthlyPlan()"></select>
+            <select id="planYearSelect" class="form-select" onchange="app.renderMonthlyPlan()"></select>
+          </div>
+        </div>
+        <p style="font-size:0.82rem; color:var(--text-muted); margin-top:8px;">
+          Define monthly day goals or target active hours for each routine. These compare directly against actual tracked performance.
+        </p>
+      </div>
+
+      <div id="monthlyGoalCards" class="activity-list"></div>
+
+      <div class="summary-card" style="margin-top:20px;">
+        <h3 style="font-size:1rem; font-weight:700; margin-bottom:12px;">Monthly Reflection</h3>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label class="form-label">What went well this month?</label>
+          <textarea id="monthlyWentWell" class="form-textarea" rows="2" oninput="app.saveMonthlyReflection()"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label class="form-label">What was missed & obstacles encountered?</label>
+          <textarea id="monthlyMissed" class="form-textarea" rows="2" oninput="app.saveMonthlyReflection()"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Key improvement for next month:</label>
+          <textarea id="monthlyImprovement" class="form-textarea" rows="2" oninput="app.saveMonthlyReflection()"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: ANALYTICS VIEW -->
+    <section id="view-analytics" class="view-panel">
+      <div class="summary-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <h2 style="font-size:1.2rem; font-weight:700;">Consistency Analytics</h2>
+          <div style="display:flex; gap:8px;">
+            <select id="analyticsMonthSelect" class="form-select" onchange="app.renderAnalytics()"></select>
+            <select id="analyticsYearSelect" class="form-select" onchange="app.renderAnalytics()"></select>
+          </div>
+        </div>
+        
+        <!-- Month Headline Metrics -->
+        <div class="summary-metrics" style="margin-top:16px;">
+          <div class="metric-box">
+            <div id="anaTotalDays" class="metric-value">30</div>
+            <div class="metric-label">Days in Month</div>
+          </div>
+          <div class="metric-box">
+            <div id="anaLoggedDays" class="metric-value">0</div>
+            <div class="metric-label">Days Logged</div>
+          </div>
+          <div class="metric-box">
+            <div id="anaCompletionRate" class="metric-value">0%</div>
+            <div class="metric-label">Consistency Rate</div>
+          </div>
+          <div class="metric-box">
+            <div id="anaTotalHours" class="metric-value">0.0h</div>
+            <div class="metric-label">Productive Time</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendar Consistency Heatmap -->
+      <div class="summary-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="font-size:0.95rem; font-weight:700;">Monthly Consistency Heatmap</h3>
+          <div style="display:flex; gap:10px; font-size:0.7rem; color:var(--text-muted);">
+            <span><span style="color:var(--accent);">●</span> 100% Done</span>
+            <span><span style="color:var(--accent-warn);">●</span> Partial</span>
+            <span><span style="color:var(--accent-danger);">●</span> Missed</span>
+            <span><span style="color:var(--text-sub);">●</span> None/Future</span>
+          </div>
+        </div>
+        <div class="calendar-grid" id="calendarHeatmap"></div>
+      </div>
+
+      <!-- Activity-Wise Performance Breakdown -->
+      <div class="summary-card">
+        <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:14px;">Activity Performance & Streaks</h3>
+        <div id="activityStatsContainer" class="activity-list"></div>
+      </div>
+
+      <!-- SVG Chart 1: Time Spent per Activity -->
+      <div class="chart-container">
+        <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:12px;">Active Hours per Activity (Monthly)</h3>
+        <div id="chartTimePerActivity"></div>
+      </div>
+
+      <!-- SVG Chart 2: Daily Productivity Trend -->
+      <div class="chart-container">
+        <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:12px;">Daily Trend (Completed Activities vs Day of Month)</h3>
+        <div id="chartDailyTrend"></div>
+      </div>
+    </section>
+
+    <!-- TAB 4: CUSTOMIZE VIEW -->
+    <section id="view-customize" class="view-panel">
+      <div class="summary-card" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2 style="font-size:1.15rem; font-weight:700;">Customizable Activities</h2>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Reorder, edit fields, add new habits, or change targets.</p>
+        </div>
+        <button class="btn btn-primary" onclick="app.openNewActivityModal()">+ New Activity</button>
+      </div>
+
+      <div id="customActivitiesList"></div>
+    </section>
+
+    <!-- TAB 5: SETTINGS & BACKUP VIEW -->
+    <section id="view-settings" class="view-panel">
+      <div class="summary-card">
+        <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:14px;">Data Management & Backup</h2>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
+          All data is persistently stored on your device using IndexedDB. Export backups regularly to preserve records across devices.
+        </p>
+        <div style="display:flex; flex-wrap:wrap; gap:10px;">
+          <button class="btn btn-primary" onclick="app.exportJSON()">Export JSON Backup</button>
+          <label class="btn btn-outline" style="cursor:pointer;">
+            Import JSON Backup
+            <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="app.importJSON(event)">
+          </label>
+          <button class="btn btn-outline" onclick="app.exportCSV()">Export Monthly CSV</button>
+          <button class="btn btn-danger" onclick="app.resetAllDataConfirm()">Clear All Data</button>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <h3 style="font-size:1rem; font-weight:700; margin-bottom:10px;">Android Notifications & Reminders</h3>
+        <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:12px; line-height:1.4;">
+          <strong>Technical Note on Android PWA Reminders:</strong> Browsers restrict background execution to conserve battery. Scheduled reminders use the standard Web Notification API. Ensure notifications are enabled for this web app in Android Chrome Settings.
+        </p>
+        <button class="btn btn-outline" onclick="app.requestNotificationPermission()">Enable Notifications</button>
+      </div>
+
+      <div class="summary-card">
+        <h3 style="font-size:1rem; font-weight:700; margin-bottom:10px;">Display Theme</h3>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-outline" onclick="app.setTheme('dark')">Dark Theme</button>
+          <button class="btn btn-outline" onclick="app.setTheme('light')">Light Theme</button>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <h3 style="font-size:1rem; font-weight:700; margin-bottom:10px;">PWA Installation Guide (Android & Desktop)</h3>
+        <ol style="font-size:0.82rem; color:var(--text-muted); padding-left:18px; line-height:1.6;">
+          <li>Open this page in Google Chrome on your Android phone.</li>
+          <li>Tap the three vertical dots (⋮) in the top-right corner.</li>
+          <li>Tap <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</li>
+          <li>PulseTrack runs full-screen, offline, and functions like a native Android app.</li>
+        </ol>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: Activity Editor -->
+  <div id="activityEditModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 id="modalEditTitle" style="font-size:1.15rem; font-weight:700; margin-bottom:16px;">Configure Activity</h3>
+      <input type="hidden" id="editActivityId">
+      
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label">Activity Name</label>
+        <input type="text" id="editNameInput" class="form-input" placeholder="e.g. Morning Walking">
+      </div>
+
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label">Target Duration (Minutes, 0 if none)</label>
+        <input type="number" id="editTargetInput" class="form-input" min="0" placeholder="e.g. 60">
+      </div>
+
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label">Stopwatch Timer Enabled?</label>
+        <select id="editTimerEnabledInput" class="form-select">
+          <option value="true">Yes (Independent Stopwatch)</option>
+          <option value="false">No (Checkbox / Inputs only)</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label">Schedule Frequency</label>
+        <select id="editScheduleTypeInput" class="form-select" onchange="app.toggleScheduleDays(this.value)">
+          <option value="daily">Daily (Every Day)</option>
+          <option value="weekdays">Weekdays (Mon-Fri)</option>
+          <option value="weekends">Weekends (Sat-Sun)</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label">Custom Input Fields (comma-separated: name:type)</label>
+        <input type="text" id="editFieldsInput" class="form-input" placeholder="steps:number, topic:text, notes:text">
+        <small style="color:var(--text-sub); font-size:0.7rem; margin-top:3px;">Types supported: number, text</small>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn btn-outline" onclick="app.closeModal('activityEditModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="app.saveActivityConfig()">Save Activity</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Element -->
+  <div id="toast-banner">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toast-msg">Saved automatically</span>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    /**
+     * PulseTrack Core Engine
+     * Pure vanilla JS with robust IndexedDB storage, timestamp-based timer calculations,
+     * customizable schema, monthly consistency analytics, and PWA integration.
+     */
+    class PulseTrackApp {
+      constructor() {
+        this.db = null;
+        this.currentDate = this.getLocalDateString(new Date());
+        this.activeRunningTimerId = null;
+        this.timerTickerInterval = null;
+        this.activities = [];
+        this.currentDayLog = {
+          date: this.currentDate,
+          items: {}, // key: activityId -> { completed, activeSeconds, timerState: 'stopped'|'running'|'paused', sessions: [], fieldValues: {} }
+          notes: ''
+        };
+
+        // Six default activities configured as required
+        this.defaultActivities = [
+          {
+            id: 'act-walking',
+            order: 1,
+            name: 'Morning Walking',
+            targetMinutes: 0,
+            hasTimer: true,
+            schedule: 'daily',
+            fields: [
+              { key: 'steps', label: 'Steps walked', type: 'number' },
+              { key: 'notes', label: 'Optional notes', type: 'text' }
+            ]
+          },
+          {
+            id: 'act-aptitude',
+            order: 2,
+            name: 'Aptitude Practice',
+            targetMinutes: 0,
+            hasTimer: true,
+            schedule: 'daily',
+            fields: [
+              { key: 'topic', label: 'Topic studied', type: 'text' },
+              { key: 'sumsPracticed', label: 'Sums / questions practised', type: 'number' },
+              { key: 'notes', label: 'Optional notes', type: 'text' }
+            ]
+          },
+          {
+            id: 'act-project-research',
+            order: 3,
+            name: 'Project Idea Research',
+            targetMinutes: 60, // 1 hour default target
+            hasTimer: true,
+            schedule: 'daily',
+            fields: [
+              { key: 'topic', label: 'Project idea / topic researched', type: 'text' },
+              { key: 'notes', label: 'Research notes', type: 'text' }
+            ]
+          },
+          {
+            id: 'act-german',
+            order: 4,
+            name: 'German Language Learning',
+            targetMinutes: 90, // 1 hr 30 mins default target
+            hasTimer: true,
+            schedule: 'daily',
+            fields: [
+              { key: 'lessonNum', label: 'Lesson number', type: 'number' },
+              { key: 'topic', label: 'Topic studied', type: 'text' },
+              { key: 'notes', label: 'Optional notes', type: 'text' }
+            ]
+          },
+          {
+            id: 'act-juice',
+            order: 5,
+            name: 'Healthy Juice',
+            targetMinutes: 0,
+            hasTimer: false, // timer optional / disabled by default
+            schedule: 'daily',
+            fields: [
+              { key: 'juiceType', label: 'What juice I drank', type: 'text' },
+              { key: 'notes', label: 'Optional notes', type: 'text' }
+            ]
+          },
+          {
+            id: 'act-coding',
+            order: 6,
+            name: 'Coding Practice',
+            targetMinutes: 0,
+            hasTimer: true,
+            schedule: 'daily',
+            fields: [
+              { key: 'language', label: 'Programming language', type: 'text' },
+              { key: 'topic', label: 'Topic practised', type: 'text' },
+              { key: 'learned', label: 'What I coded or learned', type: 'text' }
+            ]
+          }
+        ];
+      }
+
+      async init() {
+        document.getElementById('activeDateInput').value = this.currentDate;
+        this.populateMonthYearDropdowns();
+        await this.initIndexedDB();
+        await this.loadConfig();
+        await this.loadDay(this.currentDate);
+        this.initTheme();
+        this.startTimerTicker();
+        this.registerPWA();
+      }
+
+      // --- IndexedDB Persistence ---
+      initIndexedDB() {
+        return new Promise((resolve, reject) => {
+          const req = indexedDB.open('PulseTrackDatabase', 2);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('dailyLogs')) {
+              db.createObjectStore('dailyLogs', { keyPath: 'date' });
+            }
+            if (!db.objectStoreNames.contains('appConfig')) {
+              db.createObjectStore('appConfig', { keyPath: 'key' });
+            }
+            if (!db.objectStoreNames.contains('monthlyReflections')) {
+              db.createObjectStore('monthlyReflections', { keyPath: 'monthKey' });
+            }
+          };
+          req.onsuccess = (e) => {
+            this.db = e.target.result;
+            resolve();
+          };
+          req.onerror = (e) => {
+            console.error('IndexedDB init error', e);
+            resolve();
+          };
+        });
+      }
+
+      async loadConfig() {
+        try {
+          const stored = await this.idbGet('appConfig', 'activitiesConfig');
+          if (stored && Array.isArray(stored.value) && stored.value.length > 0) {
+            this.activities = stored.value;
+          } else {
+            this.activities = [...this.defaultActivities];
+            await this.idbPut('appConfig', { key: 'activitiesConfig', value: this.activities });
+          }
+        } catch (err) {
+          this.activities = [...this.defaultActivities];
+        }
+      }
+
+      async saveConfig() {
+        await this.idbPut('appConfig', { key: 'activitiesConfig', value: this.activities });
+      }
+
+      async loadDay(dateStr) {
+        this.currentDate = dateStr;
+        document.getElementById('activeDateInput').value = dateStr;
+        
+        const log = await this.idbGet('dailyLogs', dateStr);
+        if (log) {
+          this.currentDayLog = log;
+        } else {
+          this.currentDayLog = {
+            date: dateStr,
+            items: {},
+            notes: ''
+          };
+        }
+
+        // Initialize missing activities for this date
+        this.activities.forEach(act => {
+          if (!this.currentDayLog.items[act.id]) {
+            this.currentDayLog.items[act.id] = {
+              completed: false,
+              activeSeconds: 0,
+              timerState: 'stopped',
+              runningSince: null,
+              sessions: [],
+              fieldValues: {}
+            };
+          }
+        });
+
+        // Check if any timer is already running
+        this.activeRunningTimerId = null;
+        Object.entries(this.currentDayLog.items).forEach(([actId, item]) => {
+          if (item.timerState === 'running') {
+            this.activeRunningTimerId = actId;
+          }
+        });
+
+        document.getElementById('dailyNotesInput').value = this.currentDayLog.notes || '';
+        this.renderDailyDashboard();
+      }
+
+      async persistCurrentDay() {
+        if (!this.db) return;
+        await this.idbPut('dailyLogs', this.currentDayLog);
+        this.showToast('Saved automatically');
+      }
+
+      idbGet(storeName, key) {
+        return new Promise((resolve) => {
+          if (!this.db) return resolve(null);
+          const tx = this.db.transaction(storeName, 'readonly');
+          const store = tx.objectStore(storeName);
+          const req = store.get(key);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        });
+      }
+
+      idbPut(storeName, value) {
+        return new Promise((resolve) => {
+          if (!this.db) return resolve();
+          const tx = this.db.transaction(storeName, 'readwrite');
+          const store = tx.objectStore(storeName);
+          store.put(value);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        });
+      }
+
+      async getAllDailyLogs() {
+        return new Promise((resolve) => {
+          if (!this.db) return resolve([]);
+          const tx = this.db.transaction('dailyLogs', 'readonly');
+          const store = tx.objectStore('dailyLogs');
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve([]);
+        });
+      }
+
+      // --- Timestamp-Based Stopwatch Engine ---
+      // Time is calculated from actual elapsed timestamps, preventing lost seconds
+      // when the screen locks, tab is switched, or browser is restored.
+      getCurrentActiveSeconds(item) {
+        let total = item.activeSeconds || 0;
+        if (item.timerState === 'running' && item.runningSince) {
+          const now = Date.now();
+          const deltaSec = Math.max(0, Math.floor((now - item.runningSince) / 1000));
+          total += deltaSec;
+        }
+        return total;
+      }
+
+      startTimer(actId) {
+        const item = this.currentDayLog.items[actId];
+        if (!item) return;
+
+        // Pause any previously running timer across activities
+        if (this.activeRunningTimerId && this.activeRunningTimerId !== actId) {
+          this.pauseTimer(this.activeRunningTimerId);
+        }
+
+        const now = Date.now();
+        item.timerState = 'running';
+        item.runningSince = now;
+        this.activeRunningTimerId = actId;
+        this.persistCurrentDay();
+        this.renderDailyDashboard();
+      }
+
+      pauseTimer(actId) {
+        const item = this.currentDayLog.items[actId];
+        if (!item || item.timerState !== 'running') return;
+
+        const now = Date.now();
+        const sessionDuration = Math.max(0, Math.floor((now - item.runningSince) / 1000));
+        item.activeSeconds = (item.activeSeconds || 0) + sessionDuration;
+        
+        // Log individual session segment (excluding pauses)
+        if (!item.sessions) item.sessions = [];
+        item.sessions.push({ start: item.runningSince, end: now, seconds: sessionDuration });
+
+        item.timerState = 'paused';
+        item.runningSince = null;
+        if (this.activeRunningTimerId === actId) {
+          this.activeRunningTimerId = null;
+        }
+
+        this.persistCurrentDay();
+        this.renderDailyDashboard();
+      }
+
+      resumeTimer(actId) {
+        this.startTimer(actId);
+      }
+
+      finishTimer(actId) {
+        const item = this.currentDayLog.items[actId];
+        if (!item) return;
+
+        if (item.timerState === 'running') {
+          this.pauseTimer(actId);
+        }
+        item.timerState = 'stopped';
+        this.persistCurrentDay();
+        this.renderDailyDashboard();
+      }
+
+      resetTimer(actId) {
+        const act = this.activities.find(a => a.id === actId);
+        const name = act ? act.name : 'this activity';
+        if (!confirm(`Are you sure you want to reset the recorded timer for "${name}" to 00:00:00?`)) {
+          return;
+        }
+        const item = this.currentDayLog.items[actId];
+        if (item) {
+          item.timerState = 'stopped';
+          item.runningSince = null;
+          item.activeSeconds = 0;
+          item.sessions = [];
+          if (this.activeRunningTimerId === actId) {
+            this.activeRunningTimerId = null;
+          }
+          this.persistCurrentDay();
+          this.renderDailyDashboard();
+        }
+      }
+
+      startTimerTicker() {
+        if (this.timerTickerInterval) clearInterval(this.timerTickerInterval);
+        this.timerTickerInterval = setInterval(() => {
+          if (!this.activeRunningTimerId) {
+            document.getElementById('liveTimerPill').style.display = 'none';
+            return;
+          }
+
+          const act = this.activities.find(a => a.id === this.activeRunningTimerId);
+          const item = this.currentDayLog.items[this.activeRunningTimerId];
+          if (!act || !item || item.timerState !== 'running') {
+            document.getElementById('liveTimerPill').style.display = 'none';
+            return;
+          }
+
+          // Update header live pill
+          const displaySec = this.getCurrentActiveSeconds(item);
+          const formatted = this.formatSeconds(displaySec);
+          document.getElementById('liveTimerPill').style.display = 'inline-flex';
+          document.getElementById('liveTimerText').innerText = `Active: ${act.name} (${formatted})`;
+
+          // Update individual activity timer element in DOM directly
+          const displayEl = document.getElementById(`timerDisplay-${act.id}`);
+          if (displayEl) {
+            displayEl.innerText = formatted;
+          }
+
+          // Update total tracked time metric
+          this.updateMetricActiveTime();
+        }, 1000);
+      }
+
+      // --- Daily Dashboard Rendering ---
+      renderDailyDashboard() {
+        const container = document.getElementById('activityCardList');
+        container.innerHTML = '';
+
+        const scheduledActivities = this.getScheduledActivitiesForDate(this.currentDate);
+        let completedCount = 0;
+
+        scheduledActivities.forEach(act => {
+          const item = this.currentDayLog.items[act.id] || {
+            completed: false,
+            activeSeconds: 0,
+            timerState: 'stopped',
+            fieldValues: {}
+          };
+
+          if (item.completed) completedCount++;
+
+          const card = document.createElement('div');
+          const isRunning = item.timerState === 'running';
+          card.className = `activity-card ${isRunning ? 'is-running' : ''} ${item.completed ? 'completed' : ''}`;
+
+          const totalSec = this.getCurrentActiveSeconds(item);
+          const targetSec = (act.targetMinutes || 0) * 60;
+          const targetAchieved = targetSec > 0 && totalSec >= targetSec;
+
+          // Header
+          let headerHTML = `
+            <div class="activity-header">
+              <div class="activity-title-wrap">
+                <div class="checkbox-custom ${item.completed ? 'checked' : ''}" onclick="app.toggleActivityDone('${act.id}')">
+                  ${item.completed ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                </div>
+                <div>
+                  <span class="activity-title">${this.escapeHTML(act.name)}</span>
+                  ${act.targetMinutes > 0 ? `<span class="target-badge">Target: ${this.formatMinutesToReadable(act.targetMinutes)}</span>` : ''}
+                  ${targetAchieved ? `<span class="target-achieved-badge">Target Met</span>` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+
+          // Timer Box (if timer enabled)
+          let timerHTML = '';
+          if (act.hasTimer) {
+            const formattedTime = this.formatSeconds(totalSec);
+            timerHTML = `
+              <div class="timer-box">
+                <div class="timer-display" id="timerDisplay-${act.id}">${formattedTime}</div>
+                <div class="timer-actions">
+                  ${item.timerState === 'running' 
+                    ? `<button class="btn btn-warn" onclick="app.pauseTimer('${act.id}')">Pause</button>` 
+                    : (item.timerState === 'paused' 
+                        ? `<button class="btn btn-primary" onclick="app.resumeTimer('${act.id}')">Resume</button>` 
+                        : `<button class="btn btn-primary" onclick="app.startTimer('${act.id}')">Start</button>`)}
+                  <button class="btn btn-outline" onclick="app.finishTimer('${act.id}')">Finish</button>
+                  <button class="btn btn-outline" style="color:var(--accent-danger);" onclick="app.resetTimer('${act.id}')">Reset</button>
+                </div>
+              </div>
+            `;
+          }
+
+          // Custom Input Fields
+          let fieldsHTML = '<div class="activity-fields">';
+          (act.fields || []).forEach(f => {
+            const val = (item.fieldValues && item.fieldValues[f.key]) !== undefined ? item.fieldValues[f.key] : '';
+            fieldsHTML += `
+              <div class="form-group">
+                <label class="form-label">${this.escapeHTML(f.label)}</label>
+                <input type="${f.type === 'number' ? 'number' : 'text'}" 
+                       class="form-input" 
+                       value="${this.escapeHTML(val)}" 
+                       placeholder="${this.escapeHTML(f.label)}"
+                       oninput="app.updateFieldValue('${act.id}', '${f.key}', this.value)">
+              </div>
+            `;
+          });
+          fieldsHTML += '</div>';
+
+          card.innerHTML = headerHTML + timerHTML + fieldsHTML;
+          container.appendChild(card);
+        });
+
+        // Summary Calculations
+        const totalPlanned = scheduledActivities.length;
+        const percentage = totalPlanned > 0 ? Math.round((completedCount / totalPlanned) * 100) : 0;
+        
+        document.getElementById('metricPlanned').innerText = totalPlanned;
+        document.getElementById('metricCompleted').innerText = completedCount;
+        document.getElementById('metricRemaining').innerText = Math.max(0, totalPlanned - completedCount);
+        document.getElementById('dailyPercentText').innerText = `${percentage}%`;
+        document.getElementById('dailyProgressBar').style.width = `${percentage}%`;
+        this.updateMetricActiveTime();
+      }
+
+      updateMetricActiveTime() {
+        let totalActiveSec = 0;
+        Object.values(this.currentDayLog.items).forEach(item => {
+          totalActiveSec += this.getCurrentActiveSeconds(item);
+        });
+        document.getElementById('metricActiveTime').innerText = this.formatSeconds(totalActiveSec);
+      }
+
+      toggleActivityDone(actId) {
+        const item = this.currentDayLog.items[actId];
+        if (!item) return;
+        item.completed = !item.completed;
+        this.persistCurrentDay();
+        this.renderDailyDashboard();
+      }
+
+      updateFieldValue(actId, fieldKey, val) {
+        if (!this.currentDayLog.items[actId]) return;
+        if (!this.currentDayLog.items[actId].fieldValues) {
+          this.currentDayLog.items[actId].fieldValues = {};
+        }
+        this.currentDayLog.items[actId].fieldValues[fieldKey] = val;
+        this.debounceSave();
+      }
+
+      saveDailyNotes(val) {
+        this.currentDayLog.notes = val;
+        this.debounceSave();
+      }
+
+      debounceSave() {
+        if (this._saveTimeout) clearTimeout(this._saveTimeout);
+        this._saveTimeout = setTimeout(() => {
+          this.persistCurrentDay();
+        }, 500);
+      }
+
+      // --- Navigation & Date Switching ---
+      switchTab(tabId) {
+        document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn, .m-nav-item').forEach(b => b.classList.remove('active'));
+
+        const panel = document.getElementById(`view-${tabId}`);
+        if (panel) panel.classList.add('active');
+
+        // Highlight navigation links
+        document.querySelectorAll(`[onclick*="switchTab('${tabId}')"]`).forEach(el => el.classList.add('active'));
+
+        if (tabId === 'today') {
+          this.renderDailyDashboard();
+        } else if (tabId === 'plan') {
+          this.renderMonthlyPlan();
+        } else if (tabId === 'analytics') {
+          this.renderAnalytics();
+        } else if (tabId === 'customize') {
+          this.renderCustomize();
+        }
+      }
+
+      shiftDay(delta) {
+        const d = new Date(this.currentDate + 'T00:00:00');
+        d.setDate(d.getDate() + delta);
+        const nextStr = this.getLocalDateString(d);
+        this.setDate(nextStr);
+      }
+
+      goToToday() {
+        const todayStr = this.getLocalDateString(new Date());
+        this.setDate(todayStr);
+      }
+
+      setDate(dateStr) {
+        if (!dateStr) return;
+        this.loadDay(dateStr);
+      }
+
+      // --- Monthly Planning Section ---
+      populateMonthYearDropdowns() {
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const now = new Date();
+        const curM = now.getMonth();
+        const curY = now.getFullYear();
+
+        ['plan', 'analytics'].forEach(prefix => {
+          const mSelect = document.getElementById(`${prefix}MonthSelect`);
+          const ySelect = document.getElementById(`${prefix}YearSelect`);
+          mSelect.innerHTML = '';
+          ySelect.innerHTML = '';
+
+          months.forEach((m, idx) => {
+            const opt = document.createElement('option');
+            opt.value = idx;
+            opt.innerText = m;
+            if (idx === curM) opt.selected = true;
+            mSelect.appendChild(opt);
+          });
+
+          for (let y = curY - 2; y <= curY + 2; y++) {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.innerText = y;
+            if (y === curY) opt.selected = true;
+            ySelect.appendChild(opt);
+          }
+        });
+      }
+
+      async renderMonthlyPlan() {
+        const m = parseInt(document.getElementById('planMonthSelect').value, 10);
+        const y = parseInt(document.getElementById('planYearSelect').value, 10);
+        const monthKey = `${y}-${String(m + 1).padStart(2, '0')}`;
+
+        const container = document.getElementById('monthlyGoalCards');
+        container.innerHTML = '';
+
+        const allLogs = await this.getAllDailyLogs();
+        const monthLogs = allLogs.filter(l => l.date && l.date.startsWith(monthKey));
+
+        // Load reflections
+        const reflection = await this.idbGet('monthlyReflections', monthKey) || {};
+        document.getElementById('monthlyWentWell').value = reflection.wentWell || '';
+        document.getElementById('monthlyMissed').value = reflection.missed || '';
+        document.getElementById('monthlyImprovement').value = reflection.improvement || '';
+
+        this.activities.forEach(act => {
+          let daysDone = 0;
+          let totalActiveSec = 0;
+
+          monthLogs.forEach(l => {
+            const it = l.items && l.items[act.id];
+            if (it) {
+              if (it.completed) daysDone++;
+              totalActiveSec += (it.activeSeconds || 0);
+            }
+          });
+
+          const totalHours = (totalActiveSec / 3600).toFixed(1);
+
+          const card = document.createElement('div');
+          card.className = 'activity-card';
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong style="font-size:1.05rem;">${this.escapeHTML(act.name)}</strong>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
+                  Schedule: ${act.schedule} | Target: ${act.targetMinutes > 0 ? this.formatMinutesToReadable(act.targetMinutes) : 'None'}
+                </p>
+              </div>
+              <div style="text-align:right;">
+                <span style="font-size:1.15rem; font-weight:800; color:var(--primary);">${daysDone} days</span>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${totalHours} hrs tracked</div>
+              </div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      async saveMonthlyReflection() {
+        const m = parseInt(document.getElementById('planMonthSelect').value, 10);
+        const y = parseInt(document.getElementById('planYearSelect').value, 10);
+        const monthKey = `${y}-${String(m + 1).padStart(2, '0')}`;
+
+        const data = {
+          monthKey,
+          wentWell: document.getElementById('monthlyWentWell').value,
+          missed: document.getElementById('monthlyMissed').value,
+          improvement: document.getElementById('monthlyImprovement').value
+        };
+        await this.idbPut('monthlyReflections', data);
+        this.showToast('Monthly reflection saved');
+      }
+
+      // --- Consistency Analytics Section ---
+      async renderAnalytics() {
+        const m = parseInt(document.getElementById('analyticsMonthSelect').value, 10);
+        const y = parseInt(document.getElementById('analyticsYearSelect').value, 10);
+        const monthKey = `${y}-${String(m + 1).padStart(2, '0')}`;
+
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        const allLogs = await this.getAllDailyLogs();
+        const monthLogs = allLogs.filter(l => l.date && l.date.startsWith(monthKey));
+        const logsByDate = {};
+        monthLogs.forEach(l => { logsByDate[l.date] = l; });
+
+        let loggedDaysCount = 0;
+        let totalCompletedSum = 0;
+        let totalPlannedSum = 0;
+        let totalActiveSecSum = 0;
+
+        const todayStr = this.getLocalDateString(new Date());
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dateStr = `${monthKey}-${String(day).padStart(2, '0')}`;
+          const isFuture = dateStr > todayStr;
+          const log = logsByDate[dateStr];
+
+          if (!isFuture) {
+            const scheduled = this.getScheduledActivitiesForDate(dateStr);
+            if (scheduled.length > 0) {
+              totalPlannedSum += scheduled.length;
+              if (log) {
+                loggedDaysCount++;
+                scheduled.forEach(act => {
+                  const it = log.items && log.items[act.id];
+                  if (it) {
+                    if (it.completed) totalCompletedSum++;
+                    totalActiveSecSum += (it.activeSeconds || 0);
+                  }
+                });
+              }
+            }
+          }
+        }
+
+        const consistencyRate = totalPlannedSum > 0 ? Math.round((totalCompletedSum / totalPlannedSum) * 100) : 0;
+        const totalHours = (totalActiveSecSum / 3600).toFixed(1);
+
+        document.getElementById('anaTotalDays').innerText = daysInMonth;
+        document.getElementById('anaLoggedDays').innerText = loggedDaysCount;
+        document.getElementById('anaCompletionRate').innerText = `${consistencyRate}%`;
+        document.getElementById('anaTotalHours').innerText = `${totalHours}h`;
+
+        this.renderCalendarHeatmap(y, m, daysInMonth, logsByDate, todayStr);
+        this.renderActivityStreaksAndStats(allLogs, monthLogs, daysInMonth);
+        this.renderCharts(monthLogs, this.activities, daysInMonth, y, m);
+      }
+
+      renderCalendarHeatmap(year, month, daysInMonth, logsByDate, todayStr) {
+        const container = document.getElementById('calendarHeatmap');
+        container.innerHTML = '';
+
+        const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        weekdays.forEach(wd => {
+          const hd = document.createElement('div');
+          hd.className = 'calendar-day-header';
+          hd.innerText = wd;
+          container.appendChild(hd);
+        });
+
+        const firstDayIdx = new Date(year, month, 1).getDay();
+        for (let i = 0; i < firstDayIdx; i++) {
+          const empty = document.createElement('div');
+          empty.className = 'calendar-cell empty';
+          container.appendChild(empty);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const isToday = dateStr === todayStr;
+          const isFuture = dateStr > todayStr;
+          const log = logsByDate[dateStr];
+          const scheduled = this.getScheduledActivitiesForDate(dateStr);
+
+          const cell = document.createElement('div');
+          cell.className = `calendar-cell ${isToday ? 'is-today' : ''}`;
+          cell.onclick = () => {
+            this.setDate(dateStr);
+            this.switchTab('today');
+          };
+
+          const numSpan = document.createElement('span');
+          numSpan.innerText = day;
+          cell.appendChild(numSpan);
+
+          const dot = document.createElement('div');
+          dot.className = 'cell-dot';
+
+          if (isFuture || scheduled.length === 0) {
+            dot.className += ' dot-grey';
+          } else if (!log) {
+            dot.className += ' dot-red'; // past scheduled day with 0 completion
+          } else {
+            let done = 0;
+            scheduled.forEach(act => {
+              if (log.items && log.items[act.id] && log.items[act.id].completed) done++;
+            });
+
+            if (done === scheduled.length && scheduled.length > 0) {
+              dot.className += ' dot-green';
+            } else if (done > 0) {
+              dot.className += ' dot-yellow';
+            } else {
+              dot.className += ' dot-red';
+            }
+          }
+
+          cell.appendChild(dot);
+          container.appendChild(cell);
+        }
+      }
+
+      renderActivityStreaksAndStats(allLogs, monthLogs, daysInMonth) {
+        const container = document.getElementById('activityStatsContainer');
+        container.innerHTML = '';
+
+        const logsSorted = [...allLogs].sort((a, b) => b.date.localeCompare(a.date));
+
+        this.activities.forEach(act => {
+          let monthDone = 0;
+          let monthSec = 0;
+
+          monthLogs.forEach(l => {
+            const it = l.items && l.items[act.id];
+            if (it) {
+              if (it.completed) monthDone++;
+              monthSec += (it.activeSeconds || 0);
+            }
+          });
+
+          // Compute consecutive active streak
+          let streak = 0;
+          for (let l of logsSorted) {
+            const it = l.items && l.items[act.id];
+            if (it && it.completed) {
+              streak++;
+            } else {
+              break;
+            }
+          }
+
+          const avgMin = monthDone > 0 ? Math.round((monthSec / monthDone) / 60) : 0;
+          const totalHours = (monthSec / 3600).toFixed(1);
+
+          const card = document.createElement('div');
+          card.className = 'config-card';
+          card.innerHTML = `
+            <div>
+              <strong style="font-size:0.95rem;">${this.escapeHTML(act.name)}</strong>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                ${monthDone} days completed | Avg: ${avgMin}m / active day | Total: ${totalHours}h
+              </div>
+            </div>
+            <div class="streak-pill">
+              🔥 ${streak} day streak
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      renderCharts(monthLogs, activities, daysInMonth, year, month) {
+        // Chart 1: Time per activity (SVG horizontal bar chart)
+        const timeBox = document.getElementById('chartTimePerActivity');
+        timeBox.innerHTML = '';
+
+        const actTimeMap = {};
+        activities.forEach(a => actTimeMap[a.id] = 0);
+        monthLogs.forEach(l => {
+          activities.forEach(a => {
+            const it = l.items && l.items[a.id];
+            if (it) actTimeMap[a.id] += (it.activeSeconds || 0);
+          });
+        });
+
+        const maxHours = Math.max(...activities.map(a => actTimeMap[a.id] / 3600), 1);
+        const svgH = activities.length * 38 + 20;
+
+        let barsSVG = `<svg class="analytics-svg" viewBox="0 0 400 ${svgH}">`;
+        activities.forEach((a, idx) => {
+          const hrs = (actTimeMap[a.id] / 3600).toFixed(1);
+          const y = idx * 38 + 20;
+          const barW = Math.max(4, (hrs / maxHours) * 200);
+
+          barsSVG += `
+            <text x="10" y="${y + 12}" fill="var(--text-muted)" font-size="11" font-weight="600">${this.escapeHTML(a.name.substring(0, 15))}</text>
+            <rect x="150" y="${y}" width="${barW}" height="16" rx="4" fill="var(--primary)"></rect>
+            <text x="${160 + barW}" y="${y + 13}" fill="var(--text)" font-size="11" font-weight="700">${hrs}h</text>
+          `;
+        });
+        barsSVG += `</svg>`;
+        timeBox.innerHTML = barsSVG;
+
+        // Chart 2: Daily trend line
+        const trendBox = document.getElementById('chartDailyTrend');
+        trendBox.innerHTML = '';
+
+        const points = [];
+        const svgW = 400;
+        const trendH = 120;
+        const maxTasks = activities.length || 6;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const log = monthLogs.find(l => l.date === dStr);
+          let count = 0;
+          if (log && log.items) {
+            activities.forEach(a => {
+              if (log.items[a.id] && log.items[a.id].completed) count++;
+            });
+          }
+          const x = 30 + ((d - 1) / (daysInMonth - 1)) * 340;
+          const y = trendH - 20 - (count / maxTasks) * (trendH - 40);
+          points.push({ x, y, count, day: d });
+        }
+
+        let polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+        let trendSVG = `
+          <svg class="analytics-svg" viewBox="0 0 ${svgW} ${trendH}">
+            <line x1="30" y1="${trendH - 20}" x2="370" y2="${trendH - 20}" stroke="var(--surface-border)" stroke-width="1"/>
+            <polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="${polylinePoints}" />
+        `;
+        points.forEach(p => {
+          trendSVG += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="var(--accent)"/>`;
+        });
+        trendSVG += `
+            <text x="30" y="${trendH - 6}" font-size="9" fill="var(--text-sub)">Day 1</text>
+            <text x="350" y="${trendH - 6}" font-size="9" fill="var(--text-sub)">Day ${daysInMonth}</text>
+          </svg>
+        `;
+        trendBox.innerHTML = trendSVG;
+      }
+
+      // --- Customize View & Schema Management ---
+      renderCustomize() {
+        const container = document.getElementById('customActivitiesList');
+        container.innerHTML = '';
+
+        this.activities.forEach((act, idx) => {
+          const card = document.createElement('div');
+          card.className = 'config-card';
+          card.innerHTML = `
+            <div>
+              <strong style="font-size:1rem;">${this.escapeHTML(act.name)}</strong>
+              <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
+                Target: ${act.targetMinutes}m | Timer: ${act.hasTimer ? 'Enabled' : 'Disabled'} | Schedule: ${act.schedule}
+              </div>
+              <div style="font-size:0.75rem; color:var(--text-sub); margin-top:4px;">
+                Fields: ${(act.fields || []).map(f => f.key + ` (${f.type})`).join(', ') || 'None'}
+              </div>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-outline" style="padding:4px 8px;" onclick="app.moveActivity(${idx}, -1)">↑</button>
+              <button class="btn btn-outline" style="padding:4px 8px;" onclick="app.moveActivity(${idx}, 1)">↓</button>
+              <button class="btn btn-outline" style="padding:4px 8px;" onclick="app.openEditActivityModal('${act.id}')">Edit</button>
+              <button class="btn btn-outline" style="padding:4px 8px; color:var(--accent-danger);" onclick="app.deleteActivity('${act.id}')">Delete</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      openNewActivityModal() {
+        document.getElementById('modalEditTitle').innerText = 'Add New Activity';
+        document.getElementById('editActivityId').value = '';
+        document.getElementById('editNameInput').value = '';
+        document.getElementById('editTargetInput').value = '0';
+        document.getElementById('editTimerEnabledInput').value = 'true';
+        document.getElementById('editScheduleTypeInput').value = 'daily';
+        document.getElementById('editFieldsInput').value = 'notes:text';
+        this.openModal('activityEditModal');
+      }
+
+      openEditActivityModal(actId) {
+        const act = this.activities.find(a => a.id === actId);
+        if (!act) return;
+
+        document.getElementById('modalEditTitle').innerText = 'Edit Activity';
+        document.getElementById('editActivityId').value = act.id;
+        document.getElementById('editNameInput').value = act.name;
+        document.getElementById('editTargetInput').value = act.targetMinutes || 0;
+        document.getElementById('editTimerEnabledInput').value = act.hasTimer ? 'true' : 'false';
+        document.getElementById('editScheduleTypeInput').value = act.schedule || 'daily';
+
+        const fieldsStr = (act.fields || []).map(f => `${f.key}:${f.type}`).join(', ');
+        document.getElementById('editFieldsInput').value = fieldsStr;
+        this.openModal('activityEditModal');
+      }
+
+      saveActivityConfig() {
+        const id = document.getElementById('editActivityId').value;
+        const name = document.getElementById('editNameInput').value.trim();
+        const target = parseInt(document.getElementById('editTargetInput').value, 10) || 0;
+        const timerEnabled = document.getElementById('editTimerEnabledInput').value === 'true';
+        const schedule = document.getElementById('editScheduleTypeInput').value;
+        const fieldsRaw = document.getElementById('editFieldsInput').value;
+
+        if (!name) {
+          alert('Please enter an activity name.');
+          return;
+        }
+
+        // Parse custom fields
+        const parsedFields = [];
+        fieldsRaw.split(',').forEach(item => {
+          const parts = item.split(':').map(s => s.trim());
+          if (parts[0]) {
+            parsedFields.push({
+              key: parts[0],
+              label: parts[0].charAt(0).toUpperCase() + parts[0].slice(1),
+              type: parts[1] === 'number' ? 'number' : 'text'
+            });
+          }
+        });
+
+        if (id) {
+          // Edit existing
+          const act = this.activities.find(a => a.id === id);
+          if (act) {
+            act.name = name;
+            act.targetMinutes = target;
+            act.hasTimer = timerEnabled;
+            act.schedule = schedule;
+            act.fields = parsedFields;
+          }
+        } else {
+          // Create new
+          const newId = 'act-' + Date.now();
+          this.activities.push({
+            id: newId,
+            order: this.activities.length + 1,
+            name,
+            targetMinutes: target,
+            hasTimer: timerEnabled,
+            schedule,
+            fields: parsedFields
+          });
+        }
+
+        this.saveConfig();
+        this.closeModal('activityEditModal');
+        this.renderCustomize();
+        this.showToast('Activity routine updated');
+      }
+
+      deleteActivity(actId) {
+        if (!confirm('Are you sure you want to delete this activity? Historical logs will be preserved.')) {
+          return;
+        }
+        this.activities = this.activities.filter(a => a.id !== actId);
+        this.saveConfig();
+        this.renderCustomize();
+      }
+
+      moveActivity(index, direction) {
+        const targetIdx = index + direction;
+        if (targetIdx < 0 || targetIdx >= this.activities.length) return;
+        const temp = this.activities[index];
+        this.activities[index] = this.activities[targetIdx];
+        this.activities[targetIdx] = temp;
+        this.saveConfig();
+        this.renderCustomize();
+      }
+
+      // --- Data Backup & CSV Export ---
+      async exportJSON() {
+        const logs = await this.getAllDailyLogs();
+        const config = this.activities;
+        const exportObj = {
+          version: '1.0',
+          exportedAt: new Date().toISOString(),
+          activities: config,
+          dailyLogs: logs
+        };
+
+        const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `PulseTrack_Backup_${this.currentDate}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      async importJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (!data.dailyLogs || !Array.isArray(data.dailyLogs)) {
+              alert('Invalid backup file format.');
+              return;
+            }
+
+            if (confirm(`Importing will merge ${data.dailyLogs.length} days of records. Continue?`)) {
+              if (data.activities && Array.isArray(data.activities)) {
+                this.activities = data.activities;
+                await this.saveConfig();
+              }
+              for (let l of data.dailyLogs) {
+                await this.idbPut('dailyLogs', l);
+              }
+              await this.loadDay(this.currentDate);
+              alert('Backup restored successfully!');
+            }
+          } catch (err) {
+            alert('Failed to parse JSON backup: ' + err.message);
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      async exportCSV() {
+        const logs = await this.getAllDailyLogs();
+        if (logs.length === 0) {
+          alert('No records available to export.');
+          return;
+        }
+
+        const headers = ['Date', 'Activity ID', 'Activity Name', 'Completed', 'Active Seconds', 'Active Time (HH:MM:SS)', 'Daily Notes'];
+        const rows = [headers];
+
+        logs.forEach(l => {
+          this.activities.forEach(act => {
+            const it = l.items && l.items[act.id];
+            if (it) {
+              rows.push([
+                l.date,
+                act.id,
+                `"${act.name}"`,
+                it.completed ? 'YES' : 'NO',
+                it.activeSeconds || 0,
+                this.formatSeconds(it.activeSeconds || 0),
+                `"${(l.notes || '').replace(/"/g, '""')}"`
+              ]);
+            }
+          });
+        });
+
+        const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(e => e.join(',')).join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `PulseTrack_Data_${this.currentDate}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      async resetAllDataConfirm() {
+        if (confirm('CRITICAL WARNING: This will permanently delete ALL activity logs and custom habits from this device. Are you sure?')) {
+          if (confirm('Please confirm one more time: Reset everything?')) {
+            const req = indexedDB.deleteDatabase('PulseTrackDatabase');
+            req.onsuccess = () => {
+              alert('Database cleared. Reloading page.');
+              window.location.reload();
+            };
+          }
+        }
+      }
+
+      // --- Android Notifications ---
+      async requestNotificationPermission() {
+        if (!('Notification' in window)) {
+          alert('Web notifications are not supported in this browser.');
+          return;
+        }
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          new Notification('PulseTrack Ready', {
+            body: 'Reminders and notifications enabled successfully!',
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%2310b981"/></svg>'
+          });
+        } else {
+          alert('Notification permission was denied. Check your Android/Chrome site settings.');
+        }
+      }
+
+      // --- PWA Service Worker & Manifest Generation ---
+      registerPWA() {
+        // Dynamically inject Web App Manifest for Android installability
+        const manifestObj = {
+          name: 'PulseTrack Productivity',
+          short_name: 'PulseTrack',
+          start_url: window.location.href,
+          display: 'standalone',
+          background_color: '#0b0f19',
+          theme_color: '#0f172a',
+          icons: [
+            {
+              src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%233b82f6"/><text x="50" y="65" font-size="50" font-weight="900" fill="white" text-anchor="middle">P</text></svg>',
+              sizes: '192x192 512x512',
+              type: 'image/svg+xml',
+              purpose: 'any maskable'
+            }
+          ]
+        };
+        const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
+        const manifestURL = URL.createObjectURL(blob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestURL;
+        document.head.appendChild(link);
+
+        // Register basic Service Worker for offline capability
+        if ('serviceWorker' in navigator) {
+          const swCode = `
+            self.addEventListener('install', e => self.skipWaiting());
+            self.addEventListener('activate', e => self.clients.claim());
+            self.addEventListener('fetch', e => {
+              e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+            });
+          `;
+          const swBlob = new Blob([swCode], { type: 'text/javascript' });
+          navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+        }
+      }
+
+      // --- Utilities ---
+      getScheduledActivitiesForDate(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        const dayOfWeek = d.getDay(); // 0: Sun, 6: Sat
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+        return this.activities.filter(a => {
+          if (!a.schedule || a.schedule === 'daily') return true;
+          if (a.schedule === 'weekdays') return !isWeekend;
+          if (a.schedule === 'weekends') return isWeekend;
+          return true;
+        });
+      }
+
+      formatSeconds(totalSec) {
+        const h = Math.floor(totalSec / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+        return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+      }
+
+      formatMinutesToReadable(min) {
+        const h = Math.floor(min / 60);
+        const m = min % 60;
+        if (h > 0 && m > 0) return `${h}h ${m}m`;
+        if (h > 0) return `${h} hour${h > 1 ? 's' : ''}`;
+        return `${m}m`;
+      }
+
+      getLocalDateString(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      escapeHTML(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>'"]/g, 
+          tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+      }
+
+      openModal(id) {
+        document.getElementById(id).classList.add('active');
+      }
+
+      closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+      }
+
+      showToast(msg) {
+        const banner = document.getElementById('toast-banner');
+        document.getElementById('toast-msg').innerText = msg;
+        banner.style.display = 'flex';
+        if (this._toastTimeout) clearTimeout(this._toastTimeout);
+        this._toastTimeout = setTimeout(() => {
+          banner.style.display = 'none';
+        }, 2200);
+      }
+
+      initTheme() {
+        const saved = localStorage.getItem('pt_theme') || 'dark';
+        this.setTheme(saved);
+      }
+
+      setTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('pt_theme', t);
+      }
+    }
+
+    // Instantiate and expose globally
+    const app = new PulseTrackApp();
+    window.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+</body>
+</html>
